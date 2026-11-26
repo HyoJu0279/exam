@@ -144,8 +144,14 @@ textarea{resize:vertical;min-height:84px;line-height:1.55}
 .bcol{flex:none;width:214px;padding:14px}
 .bcol.exam{outline:2px solid rgba(0,0,0,.08)}
 .bcol.today{box-shadow:var(--shadow),inset 0 0 0 2px var(--ink)}
-.btodo{display:flex;gap:7px;align-items:flex-start;padding:8px 9px;border-radius:14px;background:rgba(255,255,255,.65);margin-top:6px;font-size:13.5px;line-height:1.35;text-align:left;width:100%}
-.btodo.done{opacity:.45;text-decoration:line-through}
+.btodo{display:flex;gap:4px;align-items:flex-start;padding:8px 9px 8px 4px;border-radius:14px;background:rgba(255,255,255,.65);margin-top:6px;font-size:13.5px;line-height:1.35;text-align:left;width:100%}
+.bdrop{min-height:46px;padding-bottom:2px}
+.board .card{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(250,250,251,.8)}
+.dh{touch-action:none;cursor:grab;color:var(--mut2);font-size:14px;letter-spacing:-3px;padding:6px 6px 6px 0;flex:none;user-select:none;-webkit-user-select:none;line-height:1}
+.drag-ghost{position:fixed;z-index:95;pointer-events:none;background:#fff;border-radius:14px;box-shadow:0 16px 40px rgba(0,0,0,.18);opacity:.96;margin:0}
+.drag-src{opacity:.3}
+.btodo.done{opacity:.45}
+.btodo.done span:last-child{text-decoration:line-through}
 /* 전과목계획 */
 .grp{padding:12px 0;border-top:1px solid var(--line)}
 .grp:first-child{border-top:0}
@@ -210,7 +216,7 @@ var COLORS = {
   '수학': ['#D9E6F8', '#3C68AE', '#B0C9EE'],
   '영어': ['#F8EDC6', '#8F6A0E', '#EFD686'],
   '사회': ['#DCF0DF', '#3B8550', '#B1DCBB'],
-  '과학': ['#EBF4CC', '#647F12', '#D3E793'],
+  '과학': ['#F9DDE8', '#B0436E', '#F0B3CB'],
   '역사': ['#E6E0F8', '#6C57BE', '#C9BDF0'],
   '기타': ['#E6E6E8', '#6B6B70', '#CFCFD4'],
   '생활': ['#E4E4E6', '#8A8A8F', '#D2D2D6']
@@ -372,7 +378,9 @@ var PLAN_SEED = {
 };
 
 /* ===== 저장·날짜·계산 (화면과 무관한 로직) ===== */
-var KEY = 'exam-v1', TKEY = 'exam-v1-timer';
+var KEY = 'exam-v2', TKEY = 'exam-v2-timer';
+/* 예전 버전에서 만진 기록은 한 번 지운다 */
+try { localStorage.removeItem('exam-v1'); localStorage.removeItem('exam-v1-timer'); } catch (e) {}
 var _nowOverride = (typeof window !== 'undefined' && window.__NOW) || null;
 function nowTs() { return _nowOverride != null ? _nowOverride : Date.now(); }
 
@@ -673,6 +681,62 @@ function nextLetter() {
   var un = S.letters.filter(function (l) { return !l.shown; });
   if (!un.length) { S.letters.forEach(function (l) { l.shown = false; }); un = S.letters.slice(); }
   return un[0];
+}
+
+/* ===== 식사 메뉴로 영양 대강 추정 (메뉴 이름 낱말로만 판단) ===== */
+var NUTRI_GROUPS = [['carb', '탄수화물'], ['protein', '단백질'], ['veg', '채소'], ['fruit', '과일'], ['dairy', '유제품']];
+var FOOD = {
+  carb: '밥,쌀밥,흰밥,잡곡,잡곡밥,현미,흑미,보리,귀리,볶음밥,비빔밥,덮밥,김밥,주먹밥,오므라이스,카레라이스,하이라이스,죽,누룽지,면,국수,잔치국수,라면,우동,짜장,짜장면,짬뽕,파스타,스파게티,떡,떡국,떡볶이,라볶이,빵,식빵,토스트,샌드위치,햄버거,버거,피자,시리얼,감자,고구마,옥수수,만두,수제비,칼국수,냉면,쫄면,또띠아,베이글,와플,팬케이크,핫도그,크로와상,머핀,케이크,과자,쿠키,도넛,베이커리,모닝빵,롤,떡갈비빵,찐빵,호빵,부침개,전,파전,김치전,감자전,떡꼬치,누들,쌀국수,팟타이,리조또,그라탕,브리또,타코,나초',
+  protein: '고기,돼지,돼지고기,소고기,쇠고기,닭,닭고기,치킨,오리,제육,제육볶음,불고기,갈비,갈비찜,갈비탕,삼겹,삼겹살,수육,보쌈,족발,돈까스,돈가스,너겟,함박,함박스테이크,미트볼,소시지,햄,베이컨,스팸,계란,달걀,에그,메추리알,계란말이,계란찜,스크램블,두부,순두부,연두부,콩,콩자반,생선,고등어,갈치,삼치,연어,참치,꽁치,명태,동태,대구,가자미,조기,오징어,낙지,쭈꾸미,주꾸미,새우,조개,바지락,굴,홍합,어묵,맛살,게,육개장,닭갈비,찜닭,탕수육,깐풍기,유린기,커틀릿,스테이크,장조림,멸치,북어,황태,코다리,순대,떡갈비,동그랑땡,완자,너비아니,닭가슴살,삼계탕,닭볶음탕,닭강정,닭죽,부대찌개,두루치기,주물럭,편육,차돌,우삼겹,양념치킨,후라이드,가라아게,규동,돈부리,카츠,치즈돈까스,두유,콩국수,비지,유부',
+  veg: '나물,샐러드,김치,배추김치,깍두기,배추,무,무생채,생채,시금치,콩나물,숙주,오이,당근,양배추,브로콜리,버섯,가지,호박,애호박,미역,다시마,김,파래,톳,상추,깻잎,쌈,쌈채소,고사리,도라지,무침,겉절이,피클,양파,파프리카,피망,토마토,고추,꽈리고추,부추,우엉,연근,채소,야채,셀러리,양상추,케일,열무,총각김치,단무지,섞박지,장아찌,시래기,우거지,아욱,근대,미나리,쑥갓,청경채,옥수수콘,콘샐러드,코울슬로,월남쌈,잡채,채소볶음,야채볶음,오이소박이,백김치,동치미,나박김치,물김치,파김치,갓김치,비트,무말랭이,감자샐러드',
+  fruit: '과일,사과,배,귤,감귤,오렌지,바나나,포도,딸기,수박,참외,멜론,키위,파인애플,복숭아,자두,감,홍시,곶감,블루베리,망고,체리,자몽,한라봉,천혜향,레드향,레몬,석류,샤인머스캣,청포도,과일칵테일,과일샐러드,과일주스,오렌지주스,사과주스,포도주스,스무디,황도,백도,방울토마토,용과,리치,람부탄',
+  neutral: '국,탕,찌개,된장,된장국,된장찌개,청국장,맑은국,스프,수프,소스,드레싱,양념,양념장,물,차,보리차,음료,에이드,탄산,콜라,사이다,커피,숭늉,간식,후식,디저트,젤리,사탕,초콜릿',
+  dairy: '우유,흰우유,초코우유,딸기우유,바나나우유,요구르트,요거트,치즈,아이스크림,라떼,요플레,야쿠르트,밀크,크림치즈,모짜렐라,그릭요거트,푸딩,밀크티'
+};
+var FOOD_IDX = (function () {
+  var list = [];
+  Object.keys(FOOD).forEach(function (g) { FOOD[g].split(',').forEach(function (w) { w = w.trim(); if (w) list.push([w, g]); }); });
+  /* 긴 낱말부터: '배추김치'가 '배'로 잡히지 않게 */
+  return list.sort(function (a, b) { return b[0].length - a[0].length; });
+})();
+function splitMenu(text) { return String(text || '').split(/[,\n·/]|\s{2,}|\s+/).map(function (x) { return x.replace(/[()\[\]\d]+/g, '').trim(); }).filter(Boolean); }
+function analyzeMenu(text) {
+  var out = { carb: [], protein: [], veg: [], fruit: [], dairy: [] }, unknown = [], items = splitMenu(text);
+  items.forEach(function (item) {
+    var rest = item, hit = false;
+    FOOD_IDX.forEach(function (p) {
+      var w = p[0];
+      if (rest.indexOf(w) < 0) return;
+      if (w.length === 1 && !(rest === w || rest.slice(-1) === w || rest.charAt(0) === w)) return;
+      hit = true;
+      if (p[1] !== 'neutral' && out[p[1]].indexOf(item) < 0) out[p[1]].push(item);
+      rest = rest.split(w).join('|');
+    });
+    if (!hit) unknown.push(item);
+  });
+  var missing = NUTRI_GROUPS.filter(function (g) { return !out[g[0]].length; }).map(function (g) { return g[1]; });
+  return { groups: out, unknown: unknown, missing: missing, count: items.length };
+}
+function nutriHTML(text, opts) {
+  opts = opts || {};
+  var a = analyzeMenu(text);
+  if (!a.count) return opts.compact ? '' : '<div class="note">메뉴를 적으면 무엇이 들어 있는지 대강 보여줘요.</div>';
+  var chips = NUTRI_GROUPS.map(function (g) {
+    var on = a.groups[g[0]].length > 0;
+    return '<span class="pill" style="' + (on ? 'background:' + STATUS.ok[0] + ';color:' + STATUS.ok[1] : 'background:rgba(0,0,0,.05);color:var(--mut);font-weight:500') + '">' + (on ? '✓ ' : '') + g[1] + '</span>';
+  }).join('');
+  if (opts.compact) return a.missing.length ? '<span class="lab">부족: ' + a.missing.join('·') + '</span>' : '<span class="lab" style="color:' + STATUS.ok[1] + '">골고루</span>';
+  var last = a.missing[a.missing.length - 1];
+  var msg = a.missing.length ? a.missing.join(', ') + (hasBatchim(last) ? '이' : '가') + ' 부족해 보여요.' : '다섯 가지가 골고루 들어 있어요.';
+  return '<div class="row wrap" style="gap:6px">' + chips + '</div><div style="font-size:14px;margin-top:8px">' + msg + '</div>' +
+    (a.unknown.length ? '<div class="note" style="margin-top:4px">잘 모르는 메뉴: ' + a.unknown.map(esc).join(', ') + '</div>' : '') +
+    '<div class="note" style="margin-top:4px">메뉴 이름만 보고 대강 추정한 거예요.</div>';
+}
+function hasBatchim(word) { var c = word.charCodeAt(word.length - 1); return c >= 0xAC00 && c <= 0xD7A3 && (c - 0xAC00) % 28 > 0; }
+function dayMealSummary(day) {
+  var meals = blocksOf(day).filter(function (b) { return b.type === 'meal' && b.menu; });
+  if (!meals.length) return null;
+  return analyzeMenu(meals.map(function (b) { return b.menu; }).join(','));
 }
 
 /* ===== 화면 공통 ===== */
@@ -1031,7 +1095,7 @@ function progCardHTML() {
 function todoRowHTML(t, opts) {
   opts = opts || {};
   var tm = todoMs(t.id);
-  return '<div class="todo' + (t.done ? ' done' : '') + '"><button class="chk' + (t.done ? ' on' : '') + '" data-act="todo-toggle" data-id="' + t.id + '">' + (t.done ? '✓' : '') + '</button>' +
+  return '<div class="todo' + (t.done ? ' done' : '') + '" data-row="' + t.id + '"><span class="dh" data-drag="' + t.id + '" aria-label="끌어서 옮기기">⋮⋮</span><button class="chk' + (t.done ? ' on' : '') + '" data-act="todo-toggle" data-id="' + t.id + '">' + (t.done ? '✓' : '') + '</button>' +
     subjPill(t.subject) + '<span class="tx grow ell">' + esc(t.text) + '</span>' + (tm.ms ? '<span class="lab">' + fmtHM(tm.ms) + '</span>' : '') +
     (!t.done ? '<button class="circ" style="width:32px;height:32px;font-size:12px" data-act="focus-todo" data-id="' + t.id + '" aria-label="집중 시작">▶</button>' : '') +
     (opts.menu ? '<button class="circ" style="width:32px;height:32px" data-act="todo-menu" data-id="' + t.id + '" aria-label="더 보기">⋯</button>' : '') + '</div>';
@@ -1039,7 +1103,7 @@ function todoRowHTML(t, opts) {
 function todoCardHTML(day) {
   var list = todosOn(day).filter(function (t) { return !subjectHidden(t.subject); });
   return '<div class="card"><div class="chead"><span class="lab">오늘 할 일 · ' + list.filter(function (t) { return !t.done; }).length + '개 남음</span><button class="circ" data-act="todo-add" data-day="' + day + '" aria-label="할 일 추가">+</button></div>' +
-    (list.length ? list.map(function (t) { return todoRowHTML(t); }).join('') : '<div class="empty">할 일을 추가해요</div>') + '</div>';
+    (list.length ? '<div data-drop-day="' + day + '">' + list.map(function (t) { return todoRowHTML(t); }).join('') + '</div>' : '<div class="empty">할 일을 추가해요</div>') + '</div>';
 }
 ACTS['todo-toggle'] = function (el) { var t = todoById(el.dataset.id); if (t) { setTodoDone(t.id, !t.done); render(); } };
 
@@ -1056,7 +1120,12 @@ function vTable() {
   var sum = '<div class="row wrap" style="gap:22px;margin-bottom:14px"><div><div class="lab">지킴</div><div class="bignum">' + (k.rate == null ? '–' : k.rate + '%') + '</div></div>' +
     '<div><div class="lab">공부</div><div class="bignum" style="font-size:24px;margin-top:6px">' + fmtHM(studyMsOn(day)) + '</div></div><div><div class="lab">목표</div><div class="bignum" style="font-size:24px;margin-top:6px">' + (goal ? fmtHM(goal * 60000) : '–') + '</div></div></div>';
   var list = blocks.map(function (b) { return blistRow(day, b, segs, nowM); }).join('') || '<div class="empty">블록이 없어요. 왼쪽 빈 곳을 눌러 추가해요.</div>';
-  return head + '<div class="tt-wrap"><div class="card">' + sum + dayViewHTML(day, blocks, segs, nowM, isToday) + '</div><div class="card"><div class="chead"><span class="lab">블록 목록</span><button class="circ" data-act="block-add" data-day="' + day + '" aria-label="블록 추가">+</button></div><div class="blist">' + list + '</div></div></div>';
+  return head + '<div class="tt-wrap"><div class="card">' + sum + dayViewHTML(day, blocks, segs, nowM, isToday) + '</div><div class="card"><div class="chead"><span class="lab">블록 목록</span><button class="circ" data-act="block-add" data-day="' + day + '" aria-label="블록 추가">+</button></div><div class="blist">' + list + '</div>' + mealDayCard(day) + '</div></div>';
+}
+function mealDayCard(day) {
+  var meals = blocksOf(day).filter(function (b) { return b.type === 'meal' && b.menu; });
+  if (!meals.length) return '';
+  return '<div style="margin-top:14px;padding:14px;border-radius:18px;background:rgba(255,255,255,.55)"><div class="lab" style="margin-bottom:8px">오늘 먹은 것 전체 · ' + meals.map(function (b) { return b.label; }).join('·') + '</div>' + nutriHTML(meals.map(function (b) { return b.menu; }).join(',')) + '</div>';
 }
 /* 세로 하루 보기: 왼쪽 계획, 오른쪽 실제 */
 function dayViewHTML(day, blocks, segs, nowM, isToday) {
@@ -1114,6 +1183,9 @@ function blistRow(day, b, segs, nowM) {
   } else if (b.type === 'life') {
     right = '<span class="row" style="gap:4px"><button class="btn xs' + (b.check === 'ok' ? ' dark' : '') + '" data-act="life-check" data-id="' + b.id + '" data-v="ok">지킴</button><button class="btn xs' + (b.check === 'no' ? ' dark' : '') + '" data-act="life-check" data-id="' + b.id + '" data-v="no">못 지킴</button></span>';
     pill = '<span class="pill" style="background:rgba(0,0,0,.06);color:var(--ink2)">생활</span>';
+  } else if (b.type === 'meal') {
+    pill = '<span class="pill" style="background:rgba(0,0,0,.05);color:var(--mut)">식사</span>';
+    right = b.menu ? nutriHTML(b.menu, { compact: true }) : '<span class="lab">메뉴 적기 ›</span>';
   } else {
     pill = b.type === 'exam' ? subjPill(b.subject, ';box-shadow:inset 0 0 0 1.5px ' + col(b.subject, 1)) : '<span class="pill" style="background:rgba(0,0,0,.05);color:var(--mut)">' + ({ class: '수업', meal: '식사', move: '이동' }[b.type] || '') + '</span>';
   }
@@ -1130,7 +1202,7 @@ function openBlockSheet(day, id, startM, preset) {
   var b = id ? ensureDay(day).filter(function (x) { return x.id === id; })[0] : null;
   if (id && !b) return;
   if (b && b.type === 'class') return openClassSheet(day, b);
-  var st = { type: b ? b.type : (preset && preset.type) || 'study', subject: b ? b.subject : (preset && preset.subject) || '국어', todoId: b ? b.todoId || '' : (preset && preset.todoId) || '', label: b ? b.label || '' : (preset && preset.label) || '' };
+  var st = { menu: b ? b.menu || '' : '', type: b ? b.type : (preset && preset.type) || 'study', subject: b ? b.subject : (preset && preset.subject) || '국어', todoId: b ? b.todoId || '' : (preset && preset.todoId) || '', label: b ? b.label || '' : (preset && preset.label) || '' };
   var s0 = b ? b.s : (startM || 1140), e0 = b ? b.e : s0 + ((preset && preset.len) || 60);
   var fixedKind = b && (b.type === 'meal' || b.type === 'move' || b.type === 'exam');
   var todos = todosOn(day).filter(function (t) { return !t.done || t.id === st.todoId; });
@@ -1144,6 +1216,7 @@ function openBlockSheet(day, id, startM, preset) {
     } else {
       h += '<div class="field"><span>이름</span>' + (st.type === 'life' ? '<div class="chips" style="margin-bottom:6px">' + ['휴식', '씻기', '취침 준비', '운동', '정리'].map(function (x) { return '<button class="chip" data-lbl="' + x + '">' + x + '</button>'; }).join('') + '</div>' : '') + '<input id="b-label" value="' + esc(st.label) + '" placeholder="예: 휴식"></div>';
     }
+    if (b && b.type === 'meal') h += '<div class="field"><span>메뉴</span><textarea id="b-menu" style="min-height:64px" placeholder="예: 잡곡밥, 된장국, 제육볶음, 시금치나물, 김치">' + esc(st.menu || '') + '</textarea></div><div id="b-nut" style="margin:-4px 0 14px">' + nutriHTML(st.menu) + '</div>';
     h += '<div class="field"><span>시간 · 06:00 이전은 다음날 새벽으로 봐요</span><div class="row">' + timeInput('b-s', s0) + '<span class="mut">–</span>' + timeInput('b-e', e0) + '</div></div>';
     h += '<div class="chips" style="margin-top:-4px">' + [30, 50, 60, 90].map(function (n) { return '<button class="chip" data-len="' + n + '">' + (n < 60 ? n + '분' : (n === 60 ? '1시간' : '1시간 30분')) + '</button>'; }).join('') + '</div>';
     if (b && b.type === 'life') h += '<div class="field" style="margin-top:14px"><span>지켰나요?</span><div class="row"><button class="btn sm' + (b.check === 'ok' ? ' dark' : '') + '" data-chk="ok">지킴</button><button class="btn sm' + (b.check === 'no' ? ' dark' : '') + '" data-chk="no">못 지킴</button><button class="btn sm ghost" data-chk="">체크 해제</button></div></div>';
@@ -1156,6 +1229,7 @@ function openBlockSheet(day, id, startM, preset) {
   function keep() {
     var ls = $('#b-label', box); if (ls) st.label = ls.value;
     var td = $('#b-todo', box); if (td) st.todoId = td.value;
+    var mn = $('#b-menu', box); if (mn) st.menu = mn.value;
     s0 = parseDayHM($('#b-s', box).value || hm(s0)); e0 = parseDayHM($('#b-e', box).value || hm(e0));
   }
   box.addEventListener('click', function (e) {
@@ -1166,6 +1240,7 @@ function openBlockSheet(day, id, startM, preset) {
     else if (t.dataset.len) { keep(); e0 = s0 + (+t.dataset.len); $('#b-e', box).value = hm(e0); }
     else if (t.dataset.chk != null) { updateBlock(day, b.id, { check: t.dataset.chk || null }); s.close(); render(); }
   });
+  box.addEventListener('input', function (e) { if (e.target.id === 'b-menu') $('#b-nut', box).innerHTML = nutriHTML(e.target.value); });
   box.addEventListener('change', function (e) {
     if (e.target.id === 'b-todo' && e.target.value) {
       var td = todoById(e.target.value); if (td) { st.todoId = td.id; st.subject = td.subject; keep(); box.innerHTML = body(); }
@@ -1176,6 +1251,7 @@ function openBlockSheet(day, id, startM, preset) {
     if (!(e0 > s0)) { toast('끝 시각이 시작보다 늦어야 해요'); return; }
     if (s0 < 360 || e0 > 1800) { toast('06:00부터 다음날 06:00 사이로 정해요'); return; }
     var patch = { s: s0, e: e0, label: st.label.trim() };
+    if (b && b.type === 'meal') patch.menu = st.menu.trim();
     if (!fixedKind) { patch.type = st.type; patch.subject = st.type === 'study' ? st.subject : '생활'; patch.todoId = st.type === 'study' ? (st.todoId || null) : null; if (st.type !== 'life') patch.check = null; }
     if (b) updateBlock(day, b.id, patch); else addBlock(day, patch);
     if (overlaps(day, s0, e0, b ? b.id : (ensureDay(day)[ensureDay(day).length - 1] || {}).id)) toast('다른 블록과 시간이 겹쳐요');
@@ -1207,9 +1283,11 @@ ACTS['meal-add'] = function () {
   var s = sheet('식사 추가 · ' + fmtMD(day) + ' ' + wk(day),
     '<div class="field"><span>식사</span><div class="chips">' + meals.map(function (m, i) { return '<button class="chip' + (i ? '' : ' on') + '" data-meal="' + m + '">' + m + '</button>'; }).join('') + '</div></div>' +
     '<div class="field"><span>시간</span><div class="row"><input type="time" step="60" id="m-s" value="' + def[cur][0] + '"><span class="mut">부터</span><div class="chips" id="m-len">' + [20, 30, 40, 60].map(function (n) { return '<button class="chip' + (n === def[cur][1] ? ' on' : '') + '" data-ml="' + n + '">' + n + '분</button>'; }).join('') + '</div></div></div>' +
-    '<p class="note">' + (weekday ? '학교 식사: 아침 7:40~8:00 · 점심 12:10~13:10 사이 · 저녁 17:00~18:00 사이' : '주말은 시각을 자유롭게 정해요') + '</p>',
+    '<p class="note" style="margin:-4px 0 12px">' + (weekday ? '학교 식사: 아침 7:40~8:00 · 점심 12:10~13:10 사이 · 저녁 17:00~18:00 사이' : '주말은 시각을 자유롭게 정해요') + '</p>' +
+    '<div class="field"><span>메뉴 (선택)</span><textarea id="m-menu" style="min-height:64px" placeholder="예: 잡곡밥, 된장국, 제육볶음, 시금치나물, 김치"></textarea></div><div id="m-nut">' + nutriHTML('') + '</div>',
     '<button class="btn ghost" data-close>취소</button><button class="btn dark" data-ok>추가</button>');
   var len = def[cur][1];
+  $('#m-menu', s.el).addEventListener('input', function (e) { $('#m-nut', s.el).innerHTML = nutriHTML(e.target.value); });
   s.el.addEventListener('click', function (e) {
     var t = e.target.closest('button'); if (!t) return;
     if (t.dataset.meal) { cur = t.dataset.meal; $all('[data-meal]', s.el).forEach(function (x) { x.classList.toggle('on', x === t); }); $('#m-s', s.el).value = def[cur][0]; len = def[cur][1]; $all('[data-ml]', s.el).forEach(function (x) { x.classList.toggle('on', +x.dataset.ml === len); }); }
@@ -1217,7 +1295,7 @@ ACTS['meal-add'] = function () {
   });
   $('[data-ok]', s.el).addEventListener('click', function () {
     var st = parseDayHM($('#m-s', s.el).value || def[cur][0]);
-    addBlock(day, { s: st, e: st + len, type: 'meal', subject: '생활', label: cur });
+    addBlock(day, { s: st, e: st + len, type: 'meal', subject: '생활', label: cur, menu: $('#m-menu', s.el).value.trim() });
     s.close(); render();
   });
 };
@@ -1271,7 +1349,7 @@ function vTodoDay() {
   var all = todosOn(day), hidden = all.filter(function (t) { return subjectHidden(t.subject); }), list = all.filter(function (t) { return !subjectHidden(t.subject); });
   var head = '<div class="row" style="margin-bottom:14px"><button class="circ" data-act="td-move" data-d="-1">‹</button><div style="min-width:150px;text-align:center"><div style="font-size:20px;font-weight:800">' + fmtMD(day) + ' ' + wk(day) + '</div><div class="lab">' + (day === studyToday() ? '오늘' : '') + '</div></div><button class="circ" data-act="td-move" data-d="1">›</button>' + (day === studyToday() ? '' : '<button class="btn sm" data-act="td-today">오늘</button>') + '</div>';
   return head + '<div class="home" style="grid-template-columns:minmax(0,1.4fr) minmax(0,1fr)"><div class="card"><div class="chead"><span class="lab">할 일 · ' + list.filter(function (t) { return !t.done; }).length + '개 남음</span><button class="btn dark sm" data-act="todo-add" data-day="' + day + '">+ 할 일</button></div>' +
-    (list.length ? list.map(function (t) { return todoRowHTML(t, { menu: true }); }).join('') : '<div class="empty">아직 할 일이 없어요</div>') +
+    (list.length ? '<div data-drop-day="' + day + '">' + list.map(function (t) { return todoRowHTML(t, { menu: true }); }).join('') + '</div><div class="note" style="margin-top:8px">⋮⋮를 끌면 순서를 바꿔요.</div>' : '<div class="empty">아직 할 일이 없어요</div>') +
     (hidden.length ? '<div class="note" style="margin-top:10px">시험이 끝난 과목의 할 일 ' + hidden.length + '개는 숨겼어요</div>' : '') + '</div>' +
     '<div class="card"><div class="lab" style="margin-bottom:8px">전과목계획에서 가져오기</div><p class="note" style="margin-bottom:12px">전과목계획의 항목을 이 날 할 일로 넣어요. 할 일을 끝내면 전과목계획에도 같이 체크돼요.</p><button class="btn white" data-act="plan-pick" data-day="' + day + '">항목 고르기</button></div></div>';
 }
@@ -1286,10 +1364,10 @@ function vBoard() {
     var doneN = list.filter(function (x) { return x.done; }).length;
     cols += '<div class="card bcol' + (d === t ? ' today' : '') + (ex.length ? ' exam' : '') + '"><div class="row" style="justify-content:space-between"><div><b style="font-size:16px">' + fmtMD(d) + ' ' + wk(d) + '</b>' + (d === t ? ' <span class="pill" style="background:var(--dark);color:#fff;font-size:11px">오늘</span>' : '') + '</div><span class="lab">' + doneN + '/' + list.length + '</span></div>' +
       (ex.length ? '<div class="row wrap" style="margin-top:6px">' + ex.map(function (x) { return subjPill(x.subject + ' 시험'); }).join('') + '</div>' : '') +
-      list.map(function (x) { return '<button class="btodo' + (x.done ? ' done' : '') + '" data-act="todo-menu" data-id="' + x.id + '">' + dot(x.subject, 8) + '<span style="margin-top:-2px">' + esc(x.text) + '</span></button>'; }).join('') +
+      '<div class="bdrop" data-drop-day="' + d + '">' + list.map(function (x) { return '<div class="btodo' + (x.done ? ' done' : '') + '" data-row="' + x.id + '"><span class="dh" data-drag="' + x.id + '" style="padding:2px 2px 2px 0">⋮⋮</span><button class="grow" style="display:flex;gap:7px;align-items:flex-start;text-align:left" data-act="todo-menu" data-id="' + x.id + '">' + dot(x.subject, 8) + '<span style="margin-top:-2px">' + esc(x.text) + '</span></button></div>'; }).join('') + '</div>' +
       '<div class="row" style="margin-top:8px"><button class="btn xs" data-act="todo-add" data-day="' + d + '">+ 할 일</button><button class="btn xs" data-act="plan-pick" data-day="' + d + '">계획에서</button></div></div>';
   }
-  return '<p class="note" style="margin-bottom:12px">남은 날을 한눈에 보고 할 일을 날짜별로 나눠요. 할 일을 누르면 다른 날로 옮길 수 있어요.</p><div class="board">' + cols + '</div>';
+  return '<p class="note" style="margin-bottom:12px">남은 날을 한눈에 보고 할 일을 날짜별로 나눠요. ⋮⋮를 끌어 다른 날로 옮기거나 순서를 바꿀 수 있어요.</p><div class="board">' + cols + '</div>';
 }
 
 /* 할 일 추가 */
@@ -1406,6 +1484,63 @@ ACTS['plan-pick'] = function (el) {
     s.close(); render(); if (n) toast(n + '개를 넣었어요');
   });
 };
+
+/* ===== 할 일 끌어서 옮기기 (손가락·펜·마우스) ===== */
+var _drag = null, _justDragged = false;
+document.addEventListener('pointerdown', function (e) {
+  var h = e.target.closest('[data-drag]'); if (!h || _drag) return;
+  var row = h.closest('[data-row]'); if (!row) return;
+  e.preventDefault();
+  var r = row.getBoundingClientRect(), g = row.cloneNode(true);
+  g.classList.add('drag-ghost'); g.style.width = r.width + 'px'; g.style.left = r.left + 'px'; g.style.top = r.top + 'px';
+  document.body.appendChild(g); row.classList.add('drag-src');
+  _drag = { id: row.dataset.row, row: row, ghost: g, dx: e.clientX - r.left, dy: e.clientY - r.top, from: (row.closest('[data-drop-day]') || {}).dataset, x: e.clientX, y: e.clientY };
+  _drag.fromDay = row.closest('[data-drop-day]') ? row.closest('[data-drop-day]').dataset.dropDay : null;
+  _drag.timer = setInterval(dragAutoScroll, 30);
+});
+document.addEventListener('pointermove', function (e) {
+  if (!_drag) return;
+  e.preventDefault();
+  _drag.x = e.clientX; _drag.y = e.clientY;
+  _drag.ghost.style.left = (e.clientX - _drag.dx) + 'px'; _drag.ghost.style.top = (e.clientY - _drag.dy) + 'px';
+  dragPlace();
+}, { passive: false });
+function dragPlace() {
+  var el = document.elementFromPoint(_drag.x, _drag.y), cont = el && el.closest('[data-drop-day]');
+  if (!cont) return;
+  var rows = Array.prototype.filter.call(cont.children, function (c) { return c.hasAttribute('data-row') && c !== _drag.row; });
+  var before = null;
+  for (var i = 0; i < rows.length; i++) { var rr = rows[i].getBoundingClientRect(); if (_drag.y < rr.top + rr.height / 2) { before = rows[i]; break; } }
+  if (before) cont.insertBefore(_drag.row, before); else cont.appendChild(_drag.row);
+}
+function dragAutoScroll() {
+  if (!_drag) return;
+  var main = $('.main'), board = $('.board'), x = _drag.x, y = _drag.y;
+  if (main) { var mr = main.getBoundingClientRect(); if (y < mr.top + 50) main.scrollTop -= 14; else if (y > mr.bottom - 50) main.scrollTop += 14; }
+  if (board) { var br = board.getBoundingClientRect(); if (y > br.top && y < br.bottom) { if (x < br.left + 50) board.scrollLeft -= 16; else if (x > br.right - 50) board.scrollLeft += 16; } }
+  dragPlace();
+}
+function dragEnd() {
+  if (!_drag) return;
+  var d = _drag; _drag = null;
+  clearInterval(d.timer);
+  if (d.ghost.parentNode) d.ghost.parentNode.removeChild(d.ghost);
+  d.row.classList.remove('drag-src');
+  var cont = d.row.closest('[data-drop-day]'); if (!cont) { render(); return; }
+  var day = cont.dataset.dropDay, moved = false;
+  Array.prototype.filter.call(cont.children, function (c) { return c.hasAttribute('data-row'); }).forEach(function (c, i) {
+    var t = todoById(c.dataset.row); if (!t) return;
+    t.order = i;
+    if (t.id === d.id && t.date !== day) { t.date = day; moved = true; }
+  });
+  save();
+  _justDragged = true; setTimeout(function () { _justDragged = false; }, 350);
+  render();
+  if (moved) toast(fmtMD(day) + ' ' + wk(day) + '로 옮겼어요');
+}
+document.addEventListener('pointerup', dragEnd);
+document.addEventListener('pointercancel', dragEnd);
+document.addEventListener('click', function (e) { if (_justDragged) { e.stopPropagation(); e.preventDefault(); _justDragged = false; } }, true);
 
 /* ===== 집중 타이머 ===== */
 var ICON_PAUSE = '<svg viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>';
